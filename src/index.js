@@ -1,3 +1,92 @@
+// import { fetchBreeds, fetchCatByBreed } from '../src/cat.js';
+// import { Notify } from 'notiflix/build/notiflix-notify-aio';
+
+// const select = document.querySelector('.breed-select');
+// const loader = document.querySelector('.loader');
+// const errorMessage = document.querySelector('.error');
+// const info = document.querySelector('.cat-info');
+
+// const setLoadingState = isLoading => {
+//   loader.style.display = isLoading ? 'block' : 'none';
+// };
+
+// const setErrorState = hasError => {
+//   errorMessage.style.display = hasError ? 'block' : 'none';
+//   select.style.display = hasError ? 'none' : 'block';
+// };
+
+// const createOption = (value, text) => {
+//   const option = document.createElement('option');
+//   option.value = value;
+//   option.textContent = text;
+//   return option;
+// };
+
+// const fetchCatBreeds = async () => {
+//   try {
+//     const data = await fetchBreeds();
+//     data.forEach(breed => {
+//       const option = createOption(breed.id, breed.name);
+//       select.appendChild(option);
+//     });
+//     select.style.display = 'block';
+//   } catch (error) {
+//     setErrorState(true);
+//     select.style.display = 'none';
+//   } finally {
+//     setLoadingState(false);
+//   }
+// };
+
+// const displayCatInfo = async breedId => {
+//   setErrorState(false);
+//   setLoadingState(true);
+//   info.innerHTML = '';
+
+//   try {
+//     const data = await fetchCatByBreed(breedId);
+//     const { url, breeds } = data[0];
+//     const markup = `
+//       <div class="box-img">
+//         <img src="${url}" class="cat-size" alt="${breeds[0].name}"/>
+//       </div>
+//       <div class="box">
+//         <h1>${breeds[0].name}</h1>
+//         <p>${breeds[0].description}</p>
+//         <p><b>Temperament:</b> ${breeds[0].temperament}</p>
+//       </div>`;
+//     info.insertAdjacentHTML('beforeend', markup);
+//   } catch (error) {
+//     onFetchError();
+//   } finally {
+//     setLoadingState(false);
+//     select.style.display = 'block';
+//   }
+// };
+
+// const onSelectBreed = event => {
+//   const breedId = event.target.value;
+//   displayCatInfo(breedId);
+// };
+
+// const onFetchError = () => {
+//   setLoadingState(true);
+//   Notify.failure(errorMessage.textContent, {
+//     position: 'center-center',
+//     timeout: 5000,
+//     width: '400px',
+//     fontSize: '24px',
+//   });
+// };
+
+// const initializeApp = () => {
+//   const defaultOption = createOption('', 'Виберіть породу кота');
+//   select.appendChild(defaultOption);
+//   fetchCatBreeds();
+//   select.addEventListener('change', onSelectBreed);
+// };
+
+// initializeApp();
 import { fetchBreeds, fetchCatByBreed } from '../src/cat.js';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 
@@ -6,31 +95,26 @@ const loader = document.querySelector('.loader');
 const errorMessage = document.querySelector('.error');
 const info = document.querySelector('.cat-info');
 
-const setLoadingState = isLoading => {
-  loader.style.display = isLoading ? 'block' : 'none';
-};
+errorMessage.setAttribute('hidden', 'true');
 
+const setLoadingState = isLoading =>
+  (loader.style.display = isLoading ? 'block' : 'none');
 const setErrorState = hasError => {
   errorMessage.style.display = hasError ? 'block' : 'none';
   select.style.display = hasError ? 'none' : 'block';
 };
 
-const createOption = (value, text) => {
-  const option = document.createElement('option');
-  option.value = value;
-  option.textContent = text;
-  return option;
-};
+const createOption = (value, text) =>
+  Object.assign(document.createElement('option'), { value, textContent: text });
 
 const fetchCatBreeds = async () => {
   try {
     const data = await fetchBreeds();
-    data.forEach(breed => {
-      const option = createOption(breed.id, breed.name);
-      select.appendChild(option);
-    });
+    data.forEach(breed =>
+      select.appendChild(createOption(breed.id, breed.name))
+    );
     select.style.display = 'block';
-  } catch (error) {
+  } catch {
     setErrorState(true);
     select.style.display = 'none';
   } finally {
@@ -44,8 +128,8 @@ const displayCatInfo = async breedId => {
   info.innerHTML = '';
 
   try {
-    const data = await fetchCatByBreed(breedId);
-    const { url, breeds } = data[0];
+    loader.classList.remove('is-hidden');
+    const { url, breeds } = (await fetchCatByBreed(breedId))[0];
     const markup = `
       <div class="box-img">
         <img src="${url}" class="cat-size" alt="${breeds[0].name}"/>
@@ -56,7 +140,7 @@ const displayCatInfo = async breedId => {
         <p><b>Temperament:</b> ${breeds[0].temperament}</p>
       </div>`;
     info.insertAdjacentHTML('beforeend', markup);
-  } catch (error) {
+  } catch {
     onFetchError();
   } finally {
     setLoadingState(false);
@@ -64,10 +148,7 @@ const displayCatInfo = async breedId => {
   }
 };
 
-const onSelectBreed = event => {
-  const breedId = event.target.value;
-  displayCatInfo(breedId);
-};
+const onSelectBreed = event => displayCatInfo(event.target.value);
 
 const onFetchError = () => {
   setLoadingState(true);
@@ -80,8 +161,7 @@ const onFetchError = () => {
 };
 
 const initializeApp = () => {
-  const defaultOption = createOption('', 'Виберіть породу кота');
-  select.appendChild(defaultOption);
+  select.appendChild(createOption('', 'Виберіть породу кота'));
   fetchCatBreeds();
   select.addEventListener('change', onSelectBreed);
 };
